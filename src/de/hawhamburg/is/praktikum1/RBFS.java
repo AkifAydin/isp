@@ -1,8 +1,11 @@
 package de.hawhamburg.is.praktikum1;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.PriorityQueue;
 
-public class aStar {
+public class RBFS {
 
   // returns target node with added parent nodes
   public static Node aStarAlg(Node start, Node target){
@@ -47,5 +50,4 @@ public class aStar {
     }
     return null;
   }
-
 }
