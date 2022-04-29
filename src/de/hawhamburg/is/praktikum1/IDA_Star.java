@@ -1,102 +1,61 @@
 package de.hawhamburg.is.praktikum1;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.PriorityQueue;
+
 
 public class IDA_Star {
-    public static void main(String[] args) {
-        // create graph
-        Node head = new Node(3);
-        head.g = 0;
-
-        Node n1 = new Node(2);
-        Node n2 = new Node(2);
-        Node n3 = new Node(2);
-
-        head.addBranch(1, n1);
-        head.addBranch(5, n2);
-        head.addBranch(2, n3);
-        n3.addBranch(1, n2);
-
-        Node n4 = new Node(1);
-        Node n5 = new Node(1);
-        Node target = new Node(0);
-
-        n1.addBranch(7, n4);
-        n2.addBranch(4, n5);
-        n3.addBranch(6, n4);
-
-        n4.addBranch(3, target);
-        n5.addBranch(1, n4);
-        n5.addBranch(3, target);
-
-        Node res = idaStarAlg(head, target);
-        printPath(res);
-    }
-    public static Node idaStarAlg(Node start, Node target){
-        Node root = start;
-        Node ziel = target;
-        PriorityQueue<Node> openList = new PriorityQueue<>();
-
-        start.f = start.g + start.calculateHeuristic(target);
-        openList.add(start);
-
-        while(!openList.isEmpty()){
-            // return first node
-            Node n = openList.peek();
-            if(n == target){
-                return n;
+    public static Double iDAStern(Node start,Node target){
+        double threshold = start.calculateHeuristic(target);
+        while (true){
+            System.out.println("Iteration mit threshold von: "  + threshold);
+            double distance = iDAStern(start,target, 0,threshold);
+            if (distance==Double.MAX_VALUE){
+                return null;
+            } else if (distance < 0){
+                System.out.println("Ziel Knoten gefunden");
+                return -distance;
+            } else{
+                threshold = distance;
             }
+        }
+    }
+    public static Double iDAStern(Node node,Node target,double distance,Double threshold){
+        System.out.printf("Knoten " + node.id +" besuchen ------- ");
+        if (node == target){
+            return -distance;
+        }
+        double estimate = distance + target.calculateHeuristic(target);
+        System.out.println("geschätze kosten: "+estimate);
+        if (estimate > threshold){
+            System.out.println("threshold mit: "+estimate+ " überschritten");
+            return estimate;
+        }
 
-            for(Node.Edge edge : n.neighbors){
-                Node m = edge.node;
-                double totalWeight = n.g + edge.weight;
-
-                if(!openList.contains(m) && !closedList.contains(m)){
-                    m.parent = n;
-                    m.g = totalWeight;
-                    m.f = m.g + m.calculateHeuristic(target);
-                    openList.add(m);
-                } else {
-                    if(totalWeight < m.g){
-                        m.parent = n;
-                        m.g = totalWeight;
-                        m.f = m.g + m.calculateHeuristic(target);
-
-                        if(closedList.contains(m)){
-                            closedList.remove(m);
-                            openList.add(m);
-                        }
-                    }
-                }
+        double minEstimate = Double.MAX_VALUE;
+        for (int i=0; i<node.neighbors.size();i++){
+            double t = iDAStern(node.neighbors.get(i).node,target,distance+node.neighbors.get(i).weight,threshold);
+            if(t<0){
+                return t;
+            }else if (t<minEstimate){
+                minEstimate = t;
             }
-
-            openList.remove(n);
-            closedList.add(n);
         }
-        return null;
+        return minEstimate;
     }
-
-    public static void printPath(Node target){
-        Node n = target;
-
-        if(n==null)
-            return;
-
-        List<Integer> ids = new ArrayList<>();
-
-        while(n.parent != null){
-            ids.add(n.id);
-            n = n.parent;
-        }
-        ids.add(n.id);
-        Collections.reverse(ids);
-
-        for(int id : ids){
-            System.out.print(id + " ");
-        }
-        System.out.println();
-    }
+//    public static List<Node> idaStarAlg(Node start, Node target) {
+//        List<Node> resultList = new ArrayList<>();
+//        double Limit = root.calculateHeuristic(target);
+//
+//        while (true) {
+//            int temp = search(start, 0, Limit); //function search(node,g score,threshold)
+//            if (temp == target.calculateHeuristic(target))                                 //if goal found
+//                System.out.println(target);
+//            //if (temp == ∞)                               //Threshold larger than maximum possible f value
+//            //return;                               //or set Time limit exceeded
+//            Limit = temp;
+//        }
+//        return resultList;
+//
+//    }
 }

@@ -11,6 +11,26 @@ public class Main {
     Node head = new Node(3);
     head.g = 0;
 
+    Node S = new Node(100);
+    S.g = 0;
+
+    Node A = new Node(120);
+    Node B = new Node(130);
+    Node C = new Node(120);
+    Node D = new Node(140);
+    Node G = new Node(125);
+    Node E = new Node(140);
+    Node F = new Node(125);
+
+    S.addBranch(20,A);
+    S.addBranch(30,B);
+    S.addBranch(20,C);
+    A.addBranch(20,D);
+    A.addBranch(5,G);
+    C.addBranch(20,E);
+    C.addBranch(25,F);
+    Node targetIDA = new Node(120);
+
     Node n1 = new Node(2);
     Node n2 = new Node(2);
     Node n3 = new Node(2);
@@ -24,6 +44,7 @@ public class Main {
     Node n5 = new Node(1);
     Node target = new Node(0);
 
+
     n1.addBranch(7, n4);
     n2.addBranch(4, n5);
     n3.addBranch(6, n4);
@@ -33,7 +54,9 @@ public class Main {
     n5.addBranch(3, target);
 
     Node res = aStar.aStarAlg(head, target);
-    printPath(res);
+    Double res2 = IDA_Star.iDAStern(S,targetIDA);
+    //printPath(res);
+    //printPath(res2);
   }
 
   public static void printPath(Node target){
