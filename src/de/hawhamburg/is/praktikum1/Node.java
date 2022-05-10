@@ -8,6 +8,9 @@ public class Node implements Comparable<Node> {
   private static int idCounter = 0;
   public int id;
 
+  // limit/f of best alternative path for RBFS
+  public double fLimit = Double.MAX_VALUE;
+
   // Parent in the path
   public Node parent = null;
 
