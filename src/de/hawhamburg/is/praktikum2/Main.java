@@ -1,119 +1,139 @@
 package de.hawhamburg.is.praktikum2;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-
-import weka.core.Instances;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
 
+  // TODO dynamische Listenerstellung
+  private static final List<String> gender = new ArrayList<>();
+  private static final List<List<Integer>> genderClasses = new ArrayList<>();
+  private static final List<Integer> age = new ArrayList<>();
+  private static final List<List<Integer>> ageClasses = new ArrayList<>();
+  private static final List<Integer> annualIncome = new ArrayList<>();
+  private static final List<List<Integer>> annualIncomeClasses = new ArrayList<>();
+  private static final List<Integer> spendingScore = new ArrayList<>();
+  private static final List<List<Integer>> spendingScoreClasses = new ArrayList<>();
 
-    public static BufferedReader readDataFile(String filename) {
-        BufferedReader inputReader = null;
+  public static void main(String[] args) throws IOException {
+    loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
+    genderSubclasses(gender, genderClasses);
+    calculateSubclasses(age, ageClasses, 30, 50); // 18-70
+    calculateSubclasses(annualIncome, annualIncomeClasses, 50, 90); // 15-137
+    calculateSubclasses(spendingScore, spendingScoreClasses, 33, 67); // 1-100
 
-        try {
-            inputReader = new BufferedReader(new FileReader(filename));
-        } catch (FileNotFoundException ex) {
-            System.err.println("File not found: " + filename);
-        }
+    System.out.println(gender);
+    System.out.println(age);
+    System.out.println(annualIncome);
+    System.out.println(spendingScore);
+    System.out.println();
+    System.out.println(genderClasses);
+    System.out.println(ageClasses);
+    System.out.println(annualIncome);
+    System.out.println(spendingScoreClasses);
+  }
 
-        return inputReader;
+  private static void genderSubclasses(List<String> list, List<List<Integer>> result) {
+    ArrayList<Integer> class1 = new ArrayList<>();
+    ArrayList<Integer> class2 = new ArrayList<>();
+
+    for (int i = 0; i < list.size(); i++) {
+      String elem = list.get(i);
+      if (elem.equals("Male")) { // Male
+        class1.add(i);
+      } else { // Female
+        class2.add(i);
+      }
     }
 
-    /**
-     * Sets the class index as the last attribute.
-     *
-     * @param fileName
-     * @return Instances data
-     * @throws IOException
-     */
-    public static Instances loadData(String fileName) throws IOException {
-        BufferedReader datafile = readDataFile(fileName);
+    result.add(class1);
+    result.add(class2);
+  }
 
-        Instances data = new Instances(datafile);
-        data.setClassIndex(data.numAttributes() - 1);
-        return data;
+  /**
+   * Creates 3 subclasses of an attribute.
+   * @param list attribute list
+   * @param result resulting subclasses list
+   * @param split1 first split element (inclusive)
+   * @param split2 second split element (inclusive)
+   */
+  private static void calculateSubclasses(List<Integer> list, List<List<Integer>> result, int split1, int split2) {
+
+    ArrayList<Integer> class1 = new ArrayList<>();
+    ArrayList<Integer> class2 = new ArrayList<>();
+    ArrayList<Integer> class3 = new ArrayList<>();
+
+    for (int i = 0; i < list.size(); i++) {
+      Integer elem = list.get(i);
+      if (elem <= split1) {
+        class1.add(i);
+      } else if (elem <= split2) {
+        class2.add(i);
+      } else {
+        class3.add(i);
+      }
     }
 
-    public static void main(String[] args) throws Exception {
-        Instances trainingCancer = loadData("src/de/hawhamburg/is/praktikum2/Data/cancer_train.txt");
-        Instances testingCancer = loadData("src/de/hawhamburg/is/praktikum2/Data/cancer_test.txt");
-        Instances validationCancer = loadData("src/de/hawhamburg/is/praktikum2/Data/cancer_validation.txt");
+    result.add(class1);
+    result.add(class2);
+    result.add(class3);
+  }
 
-        // Comparing between Entropy and Gini
-        DecisionTree decisionTree = new DecisionTree();
-        decisionTree.setSelectionMethod(DecisionTree.SelectionMethod.ENTROPY);
-        decisionTree.buildClassifier(trainingCancer);
-        double validErrorEntropy = decisionTree.calcAvgError(validationCancer);
-        System.out.println("Validation error using Entropy: " + validErrorEntropy);
+  /**
+   * Reads the contents of a csv file and puts them into lists.
+   * @param csvfile file name
+   * @param separator separator
+   * @return whether method call was successful or not
+   */
+  public static boolean loadCSV(String csvfile, String separator) throws FileNotFoundException, IOException {
+    boolean ret = false;
 
-        decisionTree.setSelectionMethod(DecisionTree.SelectionMethod.GINI);
-        decisionTree.buildClassifier(trainingCancer);
-        double validErrorGini = decisionTree.calcAvgError(validationCancer);
-        System.out.println("Validation error using Gini: " + validErrorGini);
+    File f = new File(csvfile);
 
-        if (validErrorGini < validErrorEntropy) {
-            decisionTree.setSelectionMethod(DecisionTree.SelectionMethod.GINI);
-        } else {
-            decisionTree.setSelectionMethod(DecisionTree.SelectionMethod.ENTROPY);
+    // prüfen, ob Datei existiert
+    if (f.exists() && f.isFile()) {
+      BufferedReader br = null;
+      FileReader fr = null;
+
+      try {
+        fr = new FileReader(f);
+        br = new BufferedReader(fr);
+
+        String l;
+
+        br.readLine(); // TODO dynamische Listenerstellung
+
+        // solange Zeilen in der Datei vorhanden
+        while ((l = br.readLine()) != null) {
+          // Zeilen anhand des Separators,
+          // z.B. ";", aufsplitten
+          String[] col = l.split(separator);
+
+          // Daten in die entsprechenden Listen eintragen
+          for (int i = 1; i < 5; i++) {
+            switch (i) {
+              case 1 -> gender.add(col[i]);
+              case 2 -> age.add(Integer.parseInt(col[i]));
+              case 3 -> annualIncome.add(Integer.parseInt(col[i]));
+              case 4 -> spendingScore.add(Integer.parseInt(col[i]));
+            }
+          }
         }
 
-        System.out.println("----------------------------------------------------");
-        double pValueAlpha = 1.0;
-        double minPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 1.0);
-        double tempPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 0.75);
-        if (minPValue > tempPValue) {
-            minPValue = tempPValue;
-            pValueAlpha = 0.75;
-        }
-        tempPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 0.5);
-        if (minPValue > tempPValue) {
-            minPValue = tempPValue;
-            pValueAlpha = 0.5;
-        }
-        tempPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 0.25);
-        if (minPValue > tempPValue) {
-            minPValue = tempPValue;
-            pValueAlpha = 0.25;
-        }
-        tempPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 0.05);
-        if (minPValue > tempPValue) {
-            minPValue = tempPValue;
-            pValueAlpha = 0.05;
-        }
-        tempPValue = pValueTest(decisionTree, trainingCancer, validationCancer, 0.005);
-        if (minPValue > tempPValue) {
-            minPValue = tempPValue;
-            pValueAlpha = 0.005;
+        ret = true;
+      } finally {
+        if (br != null) {
+          br.close();
         }
 
-        System.out.println("Best validation error at p_value = " + pValueAlpha);
-        decisionTree.setpValue(pValueAlpha);
-        decisionTree.buildClassifier(trainingCancer);
-        System.out.println("Test error with best tree: " + decisionTree.calcAvgError(testingCancer));
-
-        decisionTree.printTree();
-
+        if (fr != null) {
+          fr.close();
+        }
+      }
     }
 
-    private static double pValueTest(DecisionTree decisionTree, Instances training, Instances validation, double pValue) throws Exception {
-        System.out.println("Decision Tree with p_value of: " + pValue);
-        decisionTree.setpValue(pValue);
-        decisionTree.buildClassifier(training);
-        System.out.println("The training error of the decision tree is " + decisionTree.calcAvgError(training));
-        decisionTree.calcTreeStats(validation);
-        System.out.println("Max height on validation data: " + decisionTree.getTreeMaxHeight());
-        System.out.println("Average height on validation data: " + decisionTree.getTreeAvgHeight());
-
-        double validError = decisionTree.calcAvgError(validation);
-
-        System.out.println("The validation error of the decision tree is " + validError);
-        System.out.println("----------------------------------------------------");
-
-        return validError;
-    }
-
+    return ret;
+  }
 
 }
