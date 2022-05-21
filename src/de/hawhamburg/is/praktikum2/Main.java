@@ -16,12 +16,23 @@ public class Main {
   private static final List<Integer> spendingScore = new ArrayList<>();
   private static final List<List<Integer>> spendingScoreClasses = new ArrayList<>();
 
+  // 18-70
+  private static final int AGE_SPLIT1 = 30;
+  private static final int AGE_SPLIT2 = 50;
+  // 15-137
+  private static final int INCOME_SPLIT1 = 55;
+  private static final int INCOME_SPLIT2 = 95;
+  // 1-100
+  private static final int SPENDING_SPLIT1 = 33;
+  private static final int SPENDING_SPLIT2 = 67;
+
+
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
-    genderSubclasses(gender, genderClasses);
-    calculateSubclasses(age, ageClasses, 30, 50); // 18-70
-    calculateSubclasses(annualIncome, annualIncomeClasses, 50, 90); // 15-137
-    calculateSubclasses(spendingScore, spendingScoreClasses, 33, 67); // 1-100
+    genderSubclasses();
+    calculateSubclasses(age, ageClasses, AGE_SPLIT1, AGE_SPLIT2);
+    calculateSubclasses(annualIncome, annualIncomeClasses, INCOME_SPLIT1, INCOME_SPLIT2);
+    calculateSubclasses(spendingScore, spendingScoreClasses, SPENDING_SPLIT1, SPENDING_SPLIT2);
 
     System.out.println(gender);
     System.out.println(age);
@@ -30,16 +41,20 @@ public class Main {
     System.out.println();
     System.out.println(genderClasses);
     System.out.println(ageClasses);
-    System.out.println(annualIncome);
+    System.out.println(annualIncomeClasses);
     System.out.println(spendingScoreClasses);
+    System.out.println();
+    DecisionTree dt = new DecisionTree();
+    dt.calculateE(ageClasses, spendingScoreClasses);
   }
 
-  private static void genderSubclasses(List<String> list, List<List<Integer>> result) {
+  private static void genderSubclasses() {
     ArrayList<Integer> class1 = new ArrayList<>();
     ArrayList<Integer> class2 = new ArrayList<>();
+    ArrayList<Integer> class3 = new ArrayList<>();
 
-    for (int i = 0; i < list.size(); i++) {
-      String elem = list.get(i);
+    for (int i = 0; i < gender.size(); i++) {
+      String elem = gender.get(i);
       if (elem.equals("Male")) { // Male
         class1.add(i);
       } else { // Female
@@ -47,8 +62,9 @@ public class Main {
       }
     }
 
-    result.add(class1);
-    result.add(class2);
+    genderClasses.add(class1);
+    genderClasses.add(class2);
+    genderClasses.add(class3);
   }
 
   /**
@@ -135,5 +151,6 @@ public class Main {
 
     return ret;
   }
+
 
 }
