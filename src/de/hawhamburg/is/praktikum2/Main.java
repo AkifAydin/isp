@@ -7,16 +7,30 @@ import java.util.stream.Collectors;
 public class Main {
 
   private static final List<Object> data = new ArrayList<>();
-  protected static final boolean USE_ENTROPY = true;
-  protected static final boolean USE_GINI = false;
+  protected static final boolean USE_ENTROPY = false;
+  protected static final boolean USE_GINI = true;
+  protected static int amountElems = 0;
 
 
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
+    calculateAllSubclasses();
 
     System.out.println(data);
-    List<List<String>> strlst = (List<List<String>>) data.get(1);
-    System.out.println(calculateSubclasses(strlst.get(1)));
+    DecisionTree dt = new DecisionTree();
+    dt.createDT(data, 4, amountElems); // target 4 -> spendingScore
+  }
+
+  /**
+   * Creates and adds all subclass lists to data.
+   */
+  private static void calculateAllSubclasses() {
+    List<List<String>> attrValues = (List<List<String>>) data.get(1);
+    List<List<List<Integer>>> listOfAllSubclassLists = new ArrayList<>();
+    for (List<String> list : attrValues) {
+      listOfAllSubclassLists.add(calculateSubclasses(list));
+    }
+    data.add(listOfAllSubclassLists);
   }
 
   /**
@@ -125,6 +139,7 @@ public class Main {
         }
         // solange Zeilen in der Datei vorhanden
         while ((l = br.readLine()) != null) {
+          amountElems++; // Gesamtanzahl Elemente berechnen
           // Zeile anhand des Separators (z.B. ",") aufsplitten
           String[] col = l.split(separator);
           // Daten in die entsprechenden Listen eintragen
