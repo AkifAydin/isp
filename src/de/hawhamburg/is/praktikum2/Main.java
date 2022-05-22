@@ -6,95 +6,83 @@ import java.util.List;
 
 public class Main {
 
-  // TODO dynamische Listenerstellung
-  private static final List<String> gender = new ArrayList<>();
-  private static final List<List<Integer>> genderClasses = new ArrayList<>();
-  private static final List<Integer> age = new ArrayList<>();
-  private static final List<List<Integer>> ageClasses = new ArrayList<>();
-  private static final List<Integer> annualIncome = new ArrayList<>();
-  private static final List<List<Integer>> annualIncomeClasses = new ArrayList<>();
-  private static final List<Integer> spendingScore = new ArrayList<>();
-  private static final List<List<Integer>> spendingScoreClasses = new ArrayList<>();
-
-  // 18-70
-  private static final int AGE_SPLIT1 = 30;
-  private static final int AGE_SPLIT2 = 50;
-  // 15-137
-  private static final int INCOME_SPLIT1 = 55;
-  private static final int INCOME_SPLIT2 = 95;
-  // 1-100
-  private static final int SPENDING_SPLIT1 = 33;
-  private static final int SPENDING_SPLIT2 = 67;
-
+  private static final List<Object> data = new ArrayList<>();
   protected static final boolean USE_ENTROPY = true;
   protected static final boolean USE_GINI = false;
 
 
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
-    genderSubclasses();
-    calculateSubclasses(age, ageClasses, AGE_SPLIT1, AGE_SPLIT2);
-    calculateSubclasses(annualIncome, annualIncomeClasses, INCOME_SPLIT1, INCOME_SPLIT2);
-    calculateSubclasses(spendingScore, spendingScoreClasses, SPENDING_SPLIT1, SPENDING_SPLIT2);
 
-    System.out.println(gender);
-    System.out.println(age);
-    System.out.println(annualIncome);
-    System.out.println(spendingScore);
-    System.out.println();
-    System.out.println(genderClasses);
-    System.out.println(ageClasses);
-    System.out.println(annualIncomeClasses);
-    System.out.println(spendingScoreClasses);
-    System.out.println();
-    DecisionTree dt = new DecisionTree();
-    dt.calculateE(ageClasses, spendingScoreClasses, age.size());
-  }
-
-  private static void genderSubclasses() {
-    ArrayList<Integer> class1 = new ArrayList<>();
-    ArrayList<Integer> class2 = new ArrayList<>();
-
-    for (int i = 0; i < gender.size(); i++) {
-      String elem = gender.get(i);
-      if (elem.equals("Male")) { // Male
-        class1.add(i);
-      } else { // Female
-        class2.add(i);
-      }
-    }
-
-    genderClasses.add(class1);
-    genderClasses.add(class2);
+    System.out.println(data);
+    List<List<String>> strlst = (List<List<String>>) data.get(1);
+    System.out.println(calculateSubclasses(strlst.get(1)));
   }
 
   /**
-   * Creates 3 subclasses of an attribute.
+   * Creates subclasses of an attribute.
+   *
    * @param list attribute list
-   * @param result resulting subclasses list
-   * @param split1 first split element (inclusive)
-   * @param split2 second split element (inclusive)
    */
-  private static void calculateSubclasses(List<Integer> list, List<List<Integer>> result, int split1, int split2) {
-
+  private static List<List<Integer>> calculateSubclasses(List<String> list) {
+    List<List<Integer>> result = new ArrayList<>();
     ArrayList<Integer> class1 = new ArrayList<>();
     ArrayList<Integer> class2 = new ArrayList<>();
     ArrayList<Integer> class3 = new ArrayList<>();
+    Map<String, List<Integer>> map = new HashMap<>();
+    int split1 = 0;
+    int split2 = 0;
+    boolean isInteger = true;
 
+    try {
+      // create split values so that we get 3 subclasses of similar value range
+      List<Integer> intList;
+      intList = list.stream().map(Integer::parseInt).collect(Collectors.toList()); // convert string list to integer list
+      int max = Collections.max(intList);
+      int min = Collections.min(intList);
+      split1 = min + (max - min) / 3;
+      split2 = min + ((max - min) / 3) * 2;
+
+    } catch (NumberFormatException e) {
+      isInteger = false;
+    }
     for (int i = 0; i < list.size(); i++) {
-      Integer elem = list.get(i);
-      if (elem <= split1) {
-        class1.add(i);
-      } else if (elem <= split2) {
-        class2.add(i);
+      if (isInteger) { // create subclasses for Integer attribute
+        int elem = Integer.parseInt(list.get(i));
+        if (elem <= split1) {
+          class1.add(i);
+        } else if (elem <= split2) {
+          class2.add(i);
+        } else {
+          class3.add(i);
+        }
       } else {
-        class3.add(i);
+        // create subclasses for String attribute
+        String key = list.get(i); //Element der Input-Liste
+        //if: Wenn Element schon gefunden, dann Indexstelle in Values-Liste einfügen
+        //else: wenn Element noch nicht gefunden, dann dafür ein Key-Value-Paar eintragen
+        if (map.containsKey(key)) {
+          List<Integer> values = map.get(key);
+          values.add(i);
+          //Element Index stelle in Liste einfügen
+          map.put(key, values);
+        } else {
+          ArrayList<Integer> t = new ArrayList<>();
+          t.add(i);
+          map.put(key, t);
+        }
       }
+
     }
 
-    result.add(class1);
-    result.add(class2);
-    result.add(class3);
+    if (isInteger) {
+      result.add(class1);
+      result.add(class2);
+      result.add(class3);
+    } else {
+      result.addAll(map.values());
+    }
+    return result;
   }
 
   /**
@@ -119,12 +107,24 @@ public class Main {
 
         String l;
 
-        br.readLine(); // TODO dynamische Listenerstellung
+        // [[Attributnamen (String)],[Listen mit Attributwerten],[Subklassenlisten]]
 
+        //[Attributnamen (String)]
+        String[] attributes = br.readLine().split(separator); //List with attribute names
+        List<String> attrList = Arrays.stream(attributes).toList();
+        data.add(attrList);
+
+        //[Listen mit Attributwerten]
+        List<List<String>> attrValues = new ArrayList<>();
+
+        // Listen für die Attributwerte
+        for (int i = 0; i < attributes.length; i++) {
+          List<String> values = new ArrayList<>();
+          attrValues.add(values);
+        }
         // solange Zeilen in der Datei vorhanden
         while ((l = br.readLine()) != null) {
-          // Zeilen anhand des Separators,
-          // z.B. ";", aufsplitten
+          // Zeile anhand des Separators (z.B. ",") aufsplitten
           String[] col = l.split(separator);
 
           // Daten in die entsprechenden Listen eintragen
@@ -137,6 +137,8 @@ public class Main {
             }
           }
         }
+
+        data.add(attrValues);
 
         ret = true;
       } finally {
