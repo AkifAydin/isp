@@ -26,6 +26,9 @@ public class Main {
   private static final int SPENDING_SPLIT1 = 33;
   private static final int SPENDING_SPLIT2 = 67;
 
+  protected static final boolean USE_ENTROPY = true;
+  protected static final boolean USE_GINI = false;
+
 
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
@@ -45,13 +48,12 @@ public class Main {
     System.out.println(spendingScoreClasses);
     System.out.println();
     DecisionTree dt = new DecisionTree();
-    dt.calculateE(ageClasses, spendingScoreClasses);
+    dt.calculateE(ageClasses, spendingScoreClasses, age.size());
   }
 
   private static void genderSubclasses() {
     ArrayList<Integer> class1 = new ArrayList<>();
     ArrayList<Integer> class2 = new ArrayList<>();
-    ArrayList<Integer> class3 = new ArrayList<>();
 
     for (int i = 0; i < gender.size(); i++) {
       String elem = gender.get(i);
@@ -64,7 +66,6 @@ public class Main {
 
     genderClasses.add(class1);
     genderClasses.add(class2);
-    genderClasses.add(class3);
   }
 
   /**
