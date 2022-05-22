@@ -1,8 +1,8 @@
 package de.hawhamburg.is.praktikum2;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
 
@@ -87,7 +87,8 @@ public class Main {
 
   /**
    * Reads the contents of a csv file and puts them into lists.
-   * @param csvfile file name
+   *
+   * @param csvfile   file name
    * @param separator separator
    * @return whether method call was successful or not
    */
@@ -126,15 +127,9 @@ public class Main {
         while ((l = br.readLine()) != null) {
           // Zeile anhand des Separators (z.B. ",") aufsplitten
           String[] col = l.split(separator);
-
           // Daten in die entsprechenden Listen eintragen
-          for (int i = 1; i < 5; i++) {
-            switch (i) {
-              case 1 -> gender.add(col[i]);
-              case 2 -> age.add(Integer.parseInt(col[i]));
-              case 3 -> annualIncome.add(Integer.parseInt(col[i]));
-              case 4 -> spendingScore.add(Integer.parseInt(col[i]));
-            }
+          for (int i = 0; i < col.length; i++) {
+            attrValues.get(i).add(col[i]);
           }
         }
 
