@@ -25,7 +25,7 @@ public class Main {
   }
 
   /**
-   * Creates and adds all subclass lists to data.
+   * Erstellt und fügt alle Subklassenlisten der data Liste hinzu.
    */
   private static void calculateAllSubclasses() {
     List<List<String>> attrValues = (List<List<String>>) data.get(1);
@@ -37,9 +37,10 @@ public class Main {
   }
 
   /**
-   * Creates subclasses of an attribute.
-   *
-   * @param list attribute list
+   * Erstellt Subklassen eines Attributes.
+   * Integer-Werte werden in 3 Subklassen mit möglichst gleichem Wertebereich aufgeteilt (Gering, Mittel, Hoch).
+   * Bei String-Werte wird für alle verschiedenen Strings jeweils eine Subklasse erstellt (z.B. Gender (Male/Female) -> 2 Subklassen).
+   * @param list Attributswertliste
    */
   protected static List<List<Integer>> calculateSubclasses(List<String> list) {
     // Ergebnisliste
@@ -57,19 +58,20 @@ public class Main {
     boolean isInteger = true;
 
     try {
-      // create split values so that we get 3 subclasses of similar value range
+      // Bei Integer-Werten diese Parsen und in intList eintragen
       List<Integer> intList;
-      intList = list.stream().map(Integer::parseInt).collect(Collectors.toList()); // convert string list to integer list
+      intList = list.stream().map(Integer::parseInt).collect(Collectors.toList());
+      // Optimale Splitwerte ermitteln (für gleichmäßigen Split des Wertebereiches)
       int max = Collections.max(intList);
       int min = Collections.min(intList);
       split1 = min + (max - min) / 3; // 1/3 des Wertebereiches
       split2 = min + ((max - min) / 3) * 2; // 2/3 des Wertebereiches
 
-    } catch (NumberFormatException e) {
+    } catch (NumberFormatException e) { // bei String-Werten
       isInteger = false;
     }
     for (int i = 0; i < list.size(); i++) {
-      if (isInteger) { // create subclasses for Integer attribute
+      if (isInteger) { // Erstellen von Subklassen für Integer-Werte
         int elem = Integer.parseInt(list.get(i));
         if (elem <= split1) {
           class1.add(i);
@@ -94,7 +96,7 @@ public class Main {
       }
 
     }
-
+    // Ergebnisliste befüllen
     if (isInteger) {
       result.add(class1);
       result.add(class2);
@@ -106,11 +108,10 @@ public class Main {
   }
 
   /**
-   * Reads the contents of a csv file and puts them into lists.
-   *
-   * @param csvfile   file name
-   * @param separator separator
-   * @return whether method call was successful or not
+   * Einlesen eines Datensatzes in einer CSV Datei; Erstellen der data-Liste
+   * @param csvfile   Dateiname
+   * @param separator Separator-Symbol
+   * @return Ob der Methodenaufruf erfolgreich war oder nicht
    */
   public static boolean loadCSV(String csvfile, String separator) throws IOException {
     boolean ret = false;

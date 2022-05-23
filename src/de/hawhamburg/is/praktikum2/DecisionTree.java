@@ -38,9 +38,9 @@ public class DecisionTree {
   public boolean printLevel(Node node, int level) {
 
     if (level == 1) {
-      if (node.getAttribute() == null) {
+      if (node.getAttribute() == null) { // Blatt gefunden
         System.out.println("Blattknoten");
-      } else {
+      } else { // kein Blatt
         System.out.println("Split-Attribut: " + node.getAttribute());
         System.out.println("Attributswert (Gini/Entropie): " + node.getAttrValue());
       }
@@ -61,26 +61,29 @@ public class DecisionTree {
     return continueFlag;
   }
 
-  // Function to print level order traversal of a given binary tree
-  public void levelOrderTraversal(Node node) {
-    // start from level 1 — till the height of the tree
-    int level = 1;
-
-    // run till printLevel() returns false
-    while (printLevel(node, level)) {
-      level++;
-    }
-  }
-
-
+  /**
+   * Initialisierung des zu erstellenden Entscheidungsbaumes mithilfe der rootNode
+   *
+   * @param data        Liste, die die Daten von allen eingelesenen Datensatzelementen enthält
+   * @param targetID    ID vom Zielattribut (wird durchgereicht)
+   * @param ignoreID    ID vom zu ignorierenden Attribut (wird durchgereicht)
+   * @param amountElems Anzahl der Elemente vom gesamten Datensatz
+   */
   public void createDT(List<Object> data, int targetID, int ignoreID, int amountElems) {
     this.rootNode = new Node(data);
-
     createDTRecursive(rootNode, targetID, ignoreID, amountElems);
   }
 
-  private void createDTRecursive(Node parent, int targetID, int ignoreID, int amountElems) { // target ID = index of target attribute
-
+  /**
+   * Methode zur rekursiven Erstellung des Entscheidungsbaumes
+   *
+   * @param parent      Aktuelle Node, die ggf. gesplittet werden soll
+   * @param targetID    ID vom Zielattribut, auf Basis dessen der Baum aufgebaut werden soll
+   * @param ignoreID    ID vom Attribut, welches nicht als Split-Attribut verwendet werden soll (z.B. CustomerID)
+   * @param amountElems Anzahl der Elemente vom Datensatz, die der momentanen Node zugeordnet werden können
+   */
+  private void createDTRecursive(Node parent, int targetID, int ignoreID, int amountElems) {
+    // alle Informationen zu den Datensatzelementen in der parent Node
     List<String> data0 = (List<String>) parent.getData().get(0);
     List<List<String>> data1 = (List<List<String>>) parent.getData().get(1);
     List<List<List<Integer>>> data2 = (List<List<List<Integer>>>) parent.getData().get(2);
@@ -89,6 +92,7 @@ public class DecisionTree {
     System.out.println(data1);
     System.out.println(data2);
 
+    // Nur Splitten, solange das Limit der Anzahl an Datensatzelementen in der Node nicht unterschritten wurde
     if (data1.get(0).size() > Main.MAX_LEAF_ELEMS) {
 
       // Map um nachverfolgen zu können, zu welchem Attribut welches Ergebnis gehört
@@ -96,16 +100,18 @@ public class DecisionTree {
 
       // Scores für alle Attribute berechnen und und die Map eintragen
       for (int i = 0; i < data2.size(); i++) {
+        // targetID und ignoreID überspringen
         if (i == targetID || i == ignoreID) {
           continue;
         }
-        //attrResults.put(Ergebnis von CalculateE, Index in Data vom Attribut)
+        // attrResults.put(Ergebnis von CalculateE, Index in Data0 vom Attribut)
         attrResults.put(calculateE(data2.get(i), data2.get(targetID), amountElems), i);
       }
       // besten Score ermitteln
       Double min = Collections.min(attrResults.keySet());
       int minAttributeIndex = attrResults.get(min);
 
+      // Informationen zum Attribut in die Node eintragen
       parent.setAttribute(data0.get(minAttributeIndex));
       parent.setAttrIndex(minAttributeIndex);
       parent.setAttrValue(min);
@@ -127,10 +133,12 @@ public class DecisionTree {
           for (int index : data2.get(minAttributeIndex).get(i)) {
             data1CopyPart.add(data1.get(j).get(index));
           }
+          // Attributswertlisten zusammenfügen
           data1Copy.add(data1CopyPart);
           // aus jeder Attributswertliste entsprechende Subklassenliste erstellen
           data2Copy.add(Main.calculateSubclasses(data1CopyPart));
         }
+        // dataCopy für Child Node befüllen mit den angesammelten neuen Informationen
         dataCopy.add(data0Copy);
         dataCopy.add(data1Copy);
         dataCopy.add(data2Copy);
@@ -143,13 +151,6 @@ public class DecisionTree {
       }
       //System.out.println("Children: " + parent.getChildren());
     }
-//    Double max = Collections.max(attrResults.keySet());
-//    System.out.println(max);
-//    System.out.println(attrResults.get(max));
-//    attrResults.remove(min);
-//    Double min2 = Collections.min(attrResults.keySet());
-//    System.out.println(min2);
-
   }
 
   /**
@@ -180,9 +181,10 @@ public class DecisionTree {
    */
   private double calculateI(List<Integer> subclass, List<List<Integer>> targetSubclasses) {
     double nTotal = subclass.size();
-    // list of counters for each subclass in target attribute
+    // Liste von Zählern für alle Subklassen des Zielattributs
     int[] counterArr = new int[targetSubclasses.size()];
 
+    // Herausfinden zu welcher Klassifizierung/Zielsubklasse die Elemente der Subklasse gehören + Hochzählen
     for (int i : subclass) {
       for (int j = 0; j < counterArr.length; j++) {
         if (targetSubclasses.get(j).contains(i)) {
@@ -194,6 +196,8 @@ public class DecisionTree {
     //System.out.println("size subclass: " + nTotal);
 
     double result;
+
+    // Berechnung von Entropie
     if (Main.USE_ENTROPY) {
       result = 0.0;
       for (int i = 0; i < counterArr.length; i++) {
@@ -205,7 +209,7 @@ public class DecisionTree {
 //        System.out.println("amount in target subclass " + i + ": " + counterArr[i]);
 //        System.out.println("Result: " + result);
       }
-    } else if (Main.USE_GINI) {
+    } else if (Main.USE_GINI) { // Berechnung von Gini
       result = 1.0;
       for (int i = 0; i < counterArr.length; i++) {
         result -= Math.pow(counterArr[i] / nTotal, 2);
@@ -220,6 +224,11 @@ public class DecisionTree {
     return result;
   }
 
+  /**
+   * Logarithmus zur Basis 2
+   * @param x ein Double Wert
+   * @return log2(x)
+   */
   public static double log2(double x) {
     return (Math.log(x) / Math.log(2));
   }
