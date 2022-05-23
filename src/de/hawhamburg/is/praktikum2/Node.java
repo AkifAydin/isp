@@ -1,27 +1,22 @@
 package de.hawhamburg.is.praktikum2;
 
-
-import org.apache.commons.lang3.Range;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class Node {
 
-  private Node parent;
-  private List<Node> children;
-  private String attribute;
-  private int attrIndex;
-  private double attrValue;
-  private List<Object> data;
-  private List<Range<Integer>> subclassRanges;
+  private Node parent; // Elterknoten
+  private List<Node> children; // Liste der Kindknoten
+  private String attribute; // Name des Split-Attributs
+  private int attrIndex; // Index des Split-Attributs
+  private double attrValue; // Gini/Entropie-Wert des Split-Attributs
+  private List<Object> data; // Daten der zur Node zugehörigen Datensatzelemente
 
   public Node(List<Object> data) {
     this.parent = null;
     this.attribute = null;
     this.attrIndex = -1;
     this.attrValue = -1.0;
-    this.subclassRanges = new ArrayList<>();
     this.children = new ArrayList<>();
     this.data = data;
   }
@@ -68,15 +63,5 @@ public class Node {
 
   public void setAttrIndex(int attrIndex) {
     this.attrIndex = attrIndex;
-  }
-
-  public List<Range<Integer>> getSubclassRanges() {
-    return subclassRanges;
-  }
-
-  public void setSubclassRanges(Range<Integer> range1, Range<Integer> range2, Range<Integer> range3) {
-    this.subclassRanges.add(range1);
-    this.subclassRanges.add(range2);
-    this.subclassRanges.add(range3);
   }
 }

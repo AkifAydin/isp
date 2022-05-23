@@ -6,14 +6,15 @@ import java.util.stream.Collectors;
 
 public class Main {
 
-  private static final List<Object> data = new ArrayList<>();
-  protected static int amountElems; // will be calculated during loadCSV call
+  private static final List<Object> data = new ArrayList<>(); // Liste für die eingelesenen Daten
+  protected static int amountElems; // Anzahl aller Datensatzelemente; wird in loadCSV berechnet
 
-  protected static final boolean USE_ENTROPY = true;
-  protected static final boolean USE_GINI = false;
-  protected static final int MAX_LEAF_ELEMS = 100;
+  protected static final boolean USE_ENTROPY = true;   // Flag für Entropie
+  protected static final boolean USE_GINI = false;   // Flag für Gini
+  // Limit der Anzahl an Datensatzelementen in den Blattknoten; Abbruchbedingung der rekursiven Baumerstellung
+  protected static final int MAX_LEAF_ELEMS = 50;
 
-
+  // FUNKTIONIERT NUR FÜR STRING UND INTEGER DATEN
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
     calculateAllSubclasses();
@@ -21,7 +22,6 @@ public class Main {
     DecisionTree dt = new DecisionTree();
     dt.createDT(data, 4, 0, amountElems); // target 4 -> spendingScore; ignore 0 -> customerID
     dt.traverseTree();
-
   }
 
   /**
@@ -42,13 +42,18 @@ public class Main {
    * @param list attribute list
    */
   protected static List<List<Integer>> calculateSubclasses(List<String> list) {
+    // Ergebnisliste
     List<List<Integer>> result = new ArrayList<>();
+    // Die 3 zu erstellenden Subklassen bei Integer-Werten
     ArrayList<Integer> class1 = new ArrayList<>();
     ArrayList<Integer> class2 = new ArrayList<>();
     ArrayList<Integer> class3 = new ArrayList<>();
+    // Map mit beliebiger Anzahl an Subklassen bei String-Werten
     Map<String, List<Integer>> map = new HashMap<>();
+    // Split-Werte zum Erhalten von 3 Subklassen mit ähnlichem Wertebereich
     int split1 = 0;
     int split2 = 0;
+    // Genutzt für Überprüfung auf Integer-Werte
     boolean isInteger = true;
 
     try {
@@ -57,8 +62,8 @@ public class Main {
       intList = list.stream().map(Integer::parseInt).collect(Collectors.toList()); // convert string list to integer list
       int max = Collections.max(intList);
       int min = Collections.min(intList);
-      split1 = min + (max - min) / 3;
-      split2 = min + ((max - min) / 3) * 2;
+      split1 = min + (max - min) / 3; // 1/3 des Wertebereiches
+      split2 = min + ((max - min) / 3) * 2; // 2/3 des Wertebereiches
 
     } catch (NumberFormatException e) {
       isInteger = false;
@@ -73,20 +78,18 @@ public class Main {
         } else {
           class3.add(i);
         }
-      } else {
-        // create subclasses for String attribute
-        String key = list.get(i); //Element der Input-Liste
-        //if: Wenn Element schon gefunden, dann Indexstelle in Values-Liste einfügen
-        //else: wenn Element noch nicht gefunden, dann dafür ein Key-Value-Paar eintragen
+      } else { // Erstellen von Subklassen für String-Werte
+        String key = list.get(i); // Element der Input-Liste
+        //if: Wenn Element schon gefunden, dann Indexstelle in entsprechende Values-Liste einfügen
+        //else: Wenn Element noch nicht gefunden, dann dafür ein Key-Value-Paar eintragen
         if (map.containsKey(key)) {
           List<Integer> values = map.get(key);
           values.add(i);
-          //Element Index stelle in Liste einfügen
           map.put(key, values);
         } else {
-          ArrayList<Integer> t = new ArrayList<>();
-          t.add(i);
-          map.put(key, t);
+          ArrayList<Integer> values = new ArrayList<>();
+          values.add(i);
+          map.put(key, values);
         }
       }
 
@@ -109,7 +112,7 @@ public class Main {
    * @param separator separator
    * @return whether method call was successful or not
    */
-  public static boolean loadCSV(String csvfile, String separator) throws FileNotFoundException, IOException {
+  public static boolean loadCSV(String csvfile, String separator) throws IOException {
     boolean ret = false;
 
     amountElems = 0;

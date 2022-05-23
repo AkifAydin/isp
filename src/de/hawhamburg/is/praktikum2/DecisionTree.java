@@ -6,11 +6,35 @@ public class DecisionTree {
 
   private Node rootNode;
 
+  /**
+   * Initialisiert Baumtraversierung mit rootNode
+   */
   public void traverseTree() {
     levelOrderTraversal(rootNode);
   }
 
-  // Function to print all nodes of a given level from left to right
+  /**
+   * traversiert den Baum Ebene für Ebene
+   *
+   * @param node momentane Node
+   */
+  public void levelOrderTraversal(Node node) {
+    // Starten bei Ebene 1, Hochzählen bis zur Tiefe des Baumes
+    int level = 1;
+
+    // solange printLevel aufrufen, bis es keine weiteren Nodes mehr gibt (wenn printLevel ==> false)
+    while (printLevel(node, level)) {
+      level++;
+    }
+  }
+
+  /**
+   * Gibt für jede Ebene im Baum Informationen zu den entsprechenden Nodes aus
+   *
+   * @param node  Node, für welche Informationen ausgegeben werden
+   * @param level Die Ebene, in der wir uns befinden
+   * @return true, solange es mindestens eine Node in der momentanen Ebene des Baumes gibt
+   */
   public boolean printLevel(Node node, int level) {
 
     if (level == 1) {
@@ -21,12 +45,15 @@ public class DecisionTree {
         System.out.println("Attributswert (Gini/Entropie): " + node.getAttrValue());
       }
 
-      // return true if at least one node is present at a given level
+      // return true, solange es mindestens eine Node in der momentanen Ebene des Baumes gibt
       return true;
     }
 
+    // true, solange es mindestens eine Node in der momentanen Ebene des Baumes gibt
+    // false, wenn es keine Node in der momentanen Ebene gibt
     boolean continueFlag = false;
 
+    // Alle Nodes der momentanen Ebene durchgehen
     for (Node child : node.getChildren()) {
       continueFlag = printLevel(child, level - 1) || continueFlag;
     }
@@ -64,9 +91,10 @@ public class DecisionTree {
 
     if (data1.get(0).size() > Main.MAX_LEAF_ELEMS) {
 
-      //Map um nachverfolgen zu können zu welchem Attribut welches Ergebnis gehört
+      // Map um nachverfolgen zu können, zu welchem Attribut welches Ergebnis gehört
       Map<Double, Integer> attrResults = new HashMap<>();
 
+      // Scores für alle Attribute berechnen und und die Map eintragen
       for (int i = 0; i < data2.size(); i++) {
         if (i == targetID || i == ignoreID) {
           continue;
@@ -74,7 +102,7 @@ public class DecisionTree {
         //attrResults.put(Ergebnis von CalculateE, Index in Data vom Attribut)
         attrResults.put(calculateE(data2.get(i), data2.get(targetID), amountElems), i);
       }
-      //kleinstes Ergebnis wird ermittelt
+      // besten Score ermitteln
       Double min = Collections.min(attrResults.keySet());
       int minAttributeIndex = attrResults.get(min);
 
@@ -82,29 +110,32 @@ public class DecisionTree {
       parent.setAttrIndex(minAttributeIndex);
       parent.setAttrValue(min);
 
-      // copy data0
+      // data0 kopieren
       List<String> data0Copy = new ArrayList<>();
       data0Copy.addAll(data0);
 
-      // Schleife zum Erstellen von den 3 Nodes für die drei Subklassen
+      // Schleife zum Erstellen von den Nodes für jeweils eine Subklasse des Split-Attributs
       for (int i = 0; i < data2.get(minAttributeIndex).size(); i++) {
+        // Teilliste von data, die nur noch einen Teil der Datensatzelemente enthält
         List<Object> dataCopy = new ArrayList<>();
         List<List<String>> data1Copy = new ArrayList<>();
         List<List<List<Integer>>> data2Copy = new ArrayList<>();
-        // Schleife für alle Attribute in data1 (5Attribute: Name,Id...)
+        // Schleife zum Erstellen von den letzten beiden Teillisten in dataCopy (Attributswertlisten, Subklassenlisten)
         for (int j = 0; j < data1.size(); j++) {
           List<String> data1CopyPart = new ArrayList<>();
-          // durch jedes Element der Subklasse von minAttribute (67 elemente... Parts)
+          // für jedes Element der momentanen Subklasse vom Split-Attribut
           for (int index : data2.get(minAttributeIndex).get(i)) {
             data1CopyPart.add(data1.get(j).get(index));
           }
           data1Copy.add(data1CopyPart);
+          // aus jeder Attributswertliste entsprechende Subklassenliste erstellen
           data2Copy.add(Main.calculateSubclasses(data1CopyPart));
         }
         dataCopy.add(data0Copy);
         dataCopy.add(data1Copy);
         dataCopy.add(data2Copy);
 
+        // Child Node erstellen, mit letzten fehlenden Informationen befüllen und in Kindsknotenliste der momentanen Node einfügen
         Node child = new Node(dataCopy);
         child.setParent(parent);
         createDTRecursive(child, targetID, ignoreID, data1Copy.get(0).size());
@@ -122,19 +153,18 @@ public class DecisionTree {
   }
 
   /**
-   * Calculate E(attribute)
-   *
-   * @param subclassesList   subclass list of given attribute
-   * @param targetSubclasses subclass list of target attribute
-   * @param amountElems      total amount of elements in the data set
-   * @return gini/entropy score for the entire attribute
+   * E-Score berechnen (Score für gesamtes Attribut)
+   * @param subclassesList   Subklassenliste des Attributs
+   * @param targetSubclasses Subklassenliste des Zielattributs
+   * @param amountElems      Anzahl der Datensatzelemente in der momentanen Node
+   * @return E-Score
    */
   protected double calculateE(List<List<Integer>> subclassesList, List<List<Integer>> targetSubclasses, int amountElems) {
-    // total amount of elements
     double result = 0.0;
     for (List<Integer> integers : subclassesList) {
       double subclassSize = integers.size();
       double iValue = calculateI(integers, targetSubclasses);
+      // berechnete I-Scores der Subklassen gewichtet aufsummieren
       result += (subclassSize / amountElems) * iValue;
     }
 
@@ -143,11 +173,10 @@ public class DecisionTree {
   }
 
   /**
-   * * Calculate I(Cn)
-   *
-   * @param subclass         singular subclass of given attribute
-   * @param targetSubclasses subclass list of target attribute
-   * @return gini/entropy score for the subclass
+   * I-Score berechnen (Score für Subklasse des Attributs)
+   * @param subclass         eine Subklasse des Attributs
+   * @param targetSubclasses Subklassenliste des Zielattributs
+   * @return I-Score
    */
   private double calculateI(List<Integer> subclass, List<List<Integer>> targetSubclasses) {
     double nTotal = subclass.size();
