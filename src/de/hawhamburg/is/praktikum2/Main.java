@@ -7,18 +7,21 @@ import java.util.stream.Collectors;
 public class Main {
 
   private static final List<Object> data = new ArrayList<>();
-  protected static final boolean USE_ENTROPY = false;
-  protected static final boolean USE_GINI = true;
-  protected static int amountElems = 0;
+  protected static int amountElems; // will be calculated during loadCSV call
+
+  protected static final boolean USE_ENTROPY = true;
+  protected static final boolean USE_GINI = false;
+  protected static final int MAX_LEAF_ELEMS = 100;
 
 
   public static void main(String[] args) throws IOException {
     loadCSV("src/de/hawhamburg/is/praktikum2/customers.csv", ",");
     calculateAllSubclasses();
 
-    System.out.println(data);
     DecisionTree dt = new DecisionTree();
-    dt.createDT(data, 4, amountElems); // target 4 -> spendingScore
+    dt.createDT(data, 4, 0, amountElems); // target 4 -> spendingScore; ignore 0 -> customerID
+    dt.traverseTree();
+
   }
 
   /**
@@ -38,7 +41,7 @@ public class Main {
    *
    * @param list attribute list
    */
-  private static List<List<Integer>> calculateSubclasses(List<String> list) {
+  protected static List<List<Integer>> calculateSubclasses(List<String> list) {
     List<List<Integer>> result = new ArrayList<>();
     ArrayList<Integer> class1 = new ArrayList<>();
     ArrayList<Integer> class2 = new ArrayList<>();
@@ -109,6 +112,8 @@ public class Main {
   public static boolean loadCSV(String csvfile, String separator) throws FileNotFoundException, IOException {
     boolean ret = false;
 
+    amountElems = 0;
+
     File f = new File(csvfile);
 
     // prüfen, ob Datei existiert
@@ -164,6 +169,4 @@ public class Main {
 
     return ret;
   }
-
-
 }
