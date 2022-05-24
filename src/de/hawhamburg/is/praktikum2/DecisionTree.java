@@ -22,9 +22,12 @@ public class DecisionTree {
     // Starten bei Ebene 1, Hochzählen bis zur Tiefe des Baumes
     int level = 1;
 
+    System.out.println("Wurzel:");
+
     // solange printLevel aufrufen, bis es keine weiteren Nodes mehr gibt (wenn printLevel ==> false)
     while (printLevel(node, level)) {
       level++;
+      System.out.println("\n ========== Ebene " + level + ": ==========");
     }
   }
 
@@ -42,8 +45,10 @@ public class DecisionTree {
         System.out.println("Blattknoten");
       } else { // kein Blatt
         System.out.println("Split-Attribut: " + node.getAttribute());
-        System.out.println("Attributswert (Gini/Entropie): " + node.getAttrValue());
+        System.out.println("Attribut-Score: " + node.getAttrValue());
       }
+      System.out.println("Elemente: " + node.getSize());
+      System.out.println();
 
       // return true, solange es mindestens eine Node in der momentanen Ebene des Baumes gibt
       return true;
@@ -88,7 +93,8 @@ public class DecisionTree {
     List<List<String>> data1 = (List<List<String>>) parent.getData().get(1);
     List<List<List<Integer>>> data2 = (List<List<List<Integer>>>) parent.getData().get(2);
 
-    System.out.println("Size: " + data1.get(0).size());
+    parent.setSize(data1.get(0).size());
+    System.out.println("Size: " + parent.getSize());
     System.out.println(data1);
     System.out.println(data2);
 

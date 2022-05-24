@@ -25,7 +25,7 @@ public class Main {
   }
 
   /**
-   * Erstellt und fügt alle Subklassenlisten der data Liste hinzu.
+   * Erstellt und fügt alle Subklassenlisten der data-Liste hinzu.
    */
   private static void calculateAllSubclasses() {
     List<List<String>> attrValues = (List<List<String>>) data.get(1);

@@ -11,6 +11,7 @@ public class Node {
   private int attrIndex; // Index des Split-Attributs
   private double attrValue; // Gini/Entropie-Wert des Split-Attributs
   private List<Object> data; // Daten der zur Node zugehörigen Datensatzelemente
+  private int size; // Anzahl der Datensatzelemente in der Node
 
   public Node(List<Object> data) {
     this.parent = null;
@@ -63,5 +64,13 @@ public class Node {
 
   public void setAttrIndex(int attrIndex) {
     this.attrIndex = attrIndex;
+  }
+
+  public int getSize() {
+    return size;
+  }
+
+  public void setSize(int size) {
+    this.size = size;
   }
 }
